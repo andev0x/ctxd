@@ -116,6 +116,12 @@ ctxd mcp
 
 ---
 
+## Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, linting, and PR guidelines.
+
+---
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).

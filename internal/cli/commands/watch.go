@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 
 	"github.com/andev0x/ctxd/internal/storage/sqlite"
@@ -19,7 +20,12 @@ var watchCmd = &cobra.Command{
 			path = args[0]
 		}
 
-		dbPath := filepath.Join(".ctxd", "graph.db")
+		ctxdDir := filepath.Join(path, ".ctxd")
+		if err := os.MkdirAll(ctxdDir, 0755); err != nil {
+			return err
+		}
+
+		dbPath := filepath.Join(ctxdDir, "graph.db")
 		store, err := sqlite.NewStore(dbPath)
 		if err != nil {
 			return err

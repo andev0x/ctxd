@@ -3,14 +3,15 @@ package watcher
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"log"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/andev0x/ctxd/internal/parser/golang"
 	"github.com/andev0x/ctxd/internal/storage/contracts"
+	"github.com/andev0x/ctxd/internal/workspace/ignore"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -36,15 +37,13 @@ func (w *Watcher) Start(ctx context.Context) error {
 	defer watcher.Close()
 
 	// Recursively add directories to watch
-	err = filepath.Walk(w.root, func(path string, info os.FileInfo, err error) error {
+	matcher := ignore.NewMatcher(w.root)
+	err = filepath.WalkDir(w.root, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() {
-			if strings.HasPrefix(info.Name(), ".") && info.Name() != "." {
-				return filepath.SkipDir
-			}
-			if info.Name() == "vendor" {
+		if entry.IsDir() {
+			if matcher.ShouldSkipDir(path, entry) {
 				return filepath.SkipDir
 			}
 			return watcher.Add(path)
@@ -96,7 +95,7 @@ func (w *Watcher) Start(ctx context.Context) error {
 
 func (w *Watcher) handleUpdate(ctx context.Context, path string) {
 	fmt.Printf("File changed: %s, updating index...\n", path)
-	
+
 	// Surgical update: delete old nodes for this file and re-parse
 	if err := w.store.DeleteByFile(ctx, path); err != nil {
 		log.Printf("Error deleting old nodes for %s: %v", path, err)
@@ -109,24 +108,26 @@ func (w *Watcher) handleUpdate(ctx context.Context, path string) {
 		return
 	}
 
-	for _, n := range nodes {
-		if err := w.store.SaveNode(ctx, n); err != nil {
-			log.Printf("Error saving node: %v", err)
-		}
-	}
-	for _, e := range edges {
-		if err := w.store.SaveEdge(ctx, e); err != nil {
-			log.Printf("Error saving edge: %v", err)
-		}
+	callEdges, callErr := w.parser.ExtractCalls(path)
+	if callErr != nil {
+		log.Printf("Error extracting calls for %s: %v", path, callErr)
+		return
 	}
 
-	// Extract calls
-	callEdges, _ := w.parser.ExtractCalls(path)
-	for _, e := range callEdges {
-		if err := w.store.SaveEdge(ctx, e); err != nil {
-			log.Printf("Error saving call edge: %v", err)
-		}
+	flowEdges, flowErr := w.parser.ExtractControlFlow(path)
+	if flowErr != nil {
+		log.Printf("Error extracting flow for %s: %v", path, flowErr)
+		return
 	}
+
+	edges = append(edges, callEdges...)
+	edges = append(edges, flowEdges...)
+
+	if err := w.store.SaveGraph(ctx, nodes, edges); err != nil {
+		log.Printf("Error saving graph for %s: %v", path, err)
+		return
+	}
+
 	fmt.Printf("Updated %s\n", path)
 }
 

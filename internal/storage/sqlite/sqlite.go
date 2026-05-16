@@ -170,25 +170,83 @@ func (s *Store) edgesHasSequence() (bool, error) {
 }
 
 func (s *Store) SaveNode(ctx context.Context, node *graph.Node) error {
-	metadata, err := json.Marshal(node.Metadata)
+	metadata, err := marshalMetadata(node.Metadata)
 	if err != nil {
 		return err
 	}
 
 	query := `INSERT OR REPLACE INTO nodes (id, type, name, file, line, metadata) VALUES (?, ?, ?, ?, ?, ?)`
-	_, err = s.db.ExecContext(ctx, query, node.ID, node.Type, node.Name, node.File, node.Line, string(metadata))
+	_, err = s.db.ExecContext(ctx, query, node.ID, node.Type, node.Name, node.File, node.Line, metadata)
 	return err
 }
 
 func (s *Store) SaveEdge(ctx context.Context, edge *graph.Edge) error {
-	metadata, err := json.Marshal(edge.Metadata)
+	metadata, err := marshalMetadata(edge.Metadata)
 	if err != nil {
 		return err
 	}
 
 	query := `INSERT OR REPLACE INTO edges (from_id, to_id, type, sequence, metadata) VALUES (?, ?, ?, ?, ?)`
-	_, err = s.db.ExecContext(ctx, query, edge.FromID, edge.ToID, edge.Type, edge.Sequence, string(metadata))
+	_, err = s.db.ExecContext(ctx, query, edge.FromID, edge.ToID, edge.Type, edge.Sequence, metadata)
 	return err
+}
+
+func (s *Store) SaveGraph(ctx context.Context, nodes []*graph.Node, edges []*graph.Edge) error {
+	if len(nodes) == 0 && len(edges) == 0 {
+		return nil
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	if err := s.saveNodesEdgesTx(ctx, tx, nodes, edges); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (s *Store) saveNodesEdgesTx(ctx context.Context, tx *sql.Tx, nodes []*graph.Node, edges []*graph.Edge) error {
+	if len(nodes) > 0 {
+		stmt, err := tx.PrepareContext(ctx, `INSERT OR REPLACE INTO nodes (id, type, name, file, line, metadata) VALUES (?, ?, ?, ?, ?, ?)`)
+		if err != nil {
+			return err
+		}
+		defer stmt.Close()
+
+		for _, node := range nodes {
+			metadata, err := marshalMetadata(node.Metadata)
+			if err != nil {
+				return err
+			}
+			if _, err := stmt.ExecContext(ctx, node.ID, node.Type, node.Name, node.File, node.Line, metadata); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(edges) > 0 {
+		stmt, err := tx.PrepareContext(ctx, `INSERT OR REPLACE INTO edges (from_id, to_id, type, sequence, metadata) VALUES (?, ?, ?, ?, ?)`)
+		if err != nil {
+			return err
+		}
+		defer stmt.Close()
+
+		for _, edge := range edges {
+			metadata, err := marshalMetadata(edge.Metadata)
+			if err != nil {
+				return err
+			}
+			if _, err := stmt.ExecContext(ctx, edge.FromID, edge.ToID, edge.Type, edge.Sequence, metadata); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (s *Store) GetNode(ctx context.Context, id string) (*graph.Node, error) {
@@ -207,10 +265,8 @@ func (s *Store) GetNode(ctx context.Context, id string) (*graph.Node, error) {
 	}
 	node.Type = graph.NodeType(nodeType)
 
-	if metadataStr != "" {
-		if err := json.Unmarshal([]byte(metadataStr), &node.Metadata); err != nil {
-			return nil, err
-		}
+	if err := unmarshalMetadata(metadataStr, &node.Metadata); err != nil {
+		return nil, err
 	}
 
 	return &node, nil
@@ -234,8 +290,8 @@ func (s *Store) ListNodes(ctx context.Context) ([]*graph.Node, error) {
 			return nil, err
 		}
 		node.Type = graph.NodeType(nodeType)
-		if metadataStr != "" {
-			json.Unmarshal([]byte(metadataStr), &node.Metadata)
+		if err := unmarshalMetadata(metadataStr, &node.Metadata); err != nil {
+			return nil, err
 		}
 		nodes = append(nodes, &node)
 	}
@@ -259,8 +315,8 @@ func (s *Store) ListEdges(ctx context.Context) ([]*graph.Edge, error) {
 			return nil, err
 		}
 		edge.Type = graph.EdgeType(edgeType)
-		if metadataStr != "" {
-			json.Unmarshal([]byte(metadataStr), &edge.Metadata)
+		if err := unmarshalMetadata(metadataStr, &edge.Metadata); err != nil {
+			return nil, err
 		}
 		edges = append(edges, &edge)
 	}
@@ -304,8 +360,8 @@ func (s *Store) GetNeighbors(ctx context.Context, id string) ([]*graph.Node, []*
 		}
 
 		e.Type = graph.EdgeType(eType)
-		if eMetadataStr != "" {
-			json.Unmarshal([]byte(eMetadataStr), &e.Metadata)
+		if err := unmarshalMetadata(eMetadataStr, &e.Metadata); err != nil {
+			return nil, nil, err
 		}
 		edges = append(edges, &e)
 
@@ -319,8 +375,8 @@ func (s *Store) GetNeighbors(ctx context.Context, id string) ([]*graph.Node, []*
 			node.Name = nName.String
 			node.File = nFile.String
 			node.Line = int(nLine.Int64)
-			if nMetadataStr.String != "" {
-				json.Unmarshal([]byte(nMetadataStr.String), &node.Metadata)
+			if err := unmarshalMetadata(nMetadataStr.String, &node.Metadata); err != nil {
+				return nil, nil, err
 			}
 		} else {
 			node.Type = "unknown"
@@ -364,14 +420,14 @@ func (s *Store) GetInboundEdges(ctx context.Context, id string) ([]*graph.Node, 
 		}
 
 		e.Type = graph.EdgeType(eType)
-		if eMetadataStr != "" {
-			json.Unmarshal([]byte(eMetadataStr), &e.Metadata)
+		if err := unmarshalMetadata(eMetadataStr, &e.Metadata); err != nil {
+			return nil, nil, err
 		}
 		edges = append(edges, &e)
 
 		n.Type = graph.NodeType(nType)
-		if nMetadataStr != "" {
-			json.Unmarshal([]byte(nMetadataStr), &n.Metadata)
+		if err := unmarshalMetadata(nMetadataStr, &n.Metadata); err != nil {
+			return nil, nil, err
 		}
 		nodes = append(nodes, &n)
 	}
@@ -396,4 +452,22 @@ func (s *Store) DeleteEdgesFrom(ctx context.Context, id string) error {
 
 func (s *Store) Close() error {
 	return s.db.Close()
+}
+
+func marshalMetadata(metadata map[string]interface{}) (string, error) {
+	if metadata == nil {
+		return "", nil
+	}
+	bytes, err := json.Marshal(metadata)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+func unmarshalMetadata(data string, out *map[string]interface{}) error {
+	if data == "" {
+		return nil
+	}
+	return json.Unmarshal([]byte(data), out)
 }

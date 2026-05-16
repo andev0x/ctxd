@@ -3,14 +3,16 @@ package commands
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
+	graph "github.com/andev0x/ctxd/internal/graph/contracts"
 	"github.com/andev0x/ctxd/internal/parser/golang"
 	"github.com/andev0x/ctxd/internal/parser/treesitter"
-	graph "github.com/andev0x/ctxd/internal/graph/contracts"
 	"github.com/andev0x/ctxd/internal/storage/sqlite"
+	"github.com/andev0x/ctxd/internal/workspace/ignore"
 	"github.com/spf13/cobra"
 )
 
@@ -42,45 +44,60 @@ var indexCmd = &cobra.Command{
 		goParser := golang.NewParser()
 		tsParser := treesitter.NewParser()
 		ctx := context.Background()
+		matcher := ignore.NewMatcher(path)
 
-		err = filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error {
+		err = filepath.WalkDir(path, func(filePath string, entry fs.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}
-			if info.IsDir() {
-				// Skip hidden directories (except current dir)
-				if strings.HasPrefix(info.Name(), ".") && info.Name() != "." && info.Name() != ".ctxd" {
+			if entry.IsDir() {
+				if matcher.ShouldSkipDir(filePath, entry) {
 					return filepath.SkipDir
 				}
-				// Skip common non-source dirs
-				if info.Name() == "vendor" || info.Name() == "node_modules" || info.Name() == "target" {
-					return filepath.SkipDir
-				}
+				return nil
+			}
+			if matcher.ShouldSkipFile(filePath, entry) {
 				return nil
 			}
 
 			var nodes []*graph.Node
 			var edges []*graph.Edge
 
-			ext := filepath.Ext(filePath)
-			if ext == ".go" {
-				nodes, edges, _ = goParser.ParseFile(filePath)
-				callEdges, _ := goParser.ExtractCalls(filePath)
-				flowEdges, _ := goParser.ExtractControlFlow(filePath)
+			ext := strings.ToLower(filepath.Ext(filePath))
+			switch ext {
+			case ".go":
+				var parseErr error
+				nodes, edges, parseErr = goParser.ParseFile(filePath)
+				if parseErr != nil {
+					return fmt.Errorf("parse %s: %w", filePath, parseErr)
+				}
+				callEdges, callErr := goParser.ExtractCalls(filePath)
+				if callErr != nil {
+					return fmt.Errorf("extract calls %s: %w", filePath, callErr)
+				}
+				flowEdges, flowErr := goParser.ExtractControlFlow(filePath)
+				if flowErr != nil {
+					return fmt.Errorf("extract flow %s: %w", filePath, flowErr)
+				}
 				edges = append(edges, callEdges...)
 				edges = append(edges, flowEdges...)
-			} else if ext == ".py" || ext == ".rs" || ext == ".ts" {
-				nodes, edges, _ = tsParser.ParseFile(ctx, filePath)
-			} else {
+			case ".py", ".rs", ".ts":
+				var parseErr error
+				nodes, edges, parseErr = tsParser.ParseFile(ctx, filePath)
+				if parseErr != nil {
+					return fmt.Errorf("parse %s: %w", filePath, parseErr)
+				}
+			default:
+				return nil
+			}
+
+			if len(nodes) == 0 && len(edges) == 0 {
 				return nil
 			}
 
 			fmt.Printf("Indexing %s...\n", filePath)
-			for _, n := range nodes {
-				store.SaveNode(ctx, n)
-			}
-			for _, e := range edges {
-				store.SaveEdge(ctx, e)
+			if err := store.SaveGraph(ctx, nodes, edges); err != nil {
+				return fmt.Errorf("persist graph for %s: %w", filePath, err)
 			}
 
 			return nil
