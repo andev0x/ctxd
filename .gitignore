@@ -1,6 +1,7 @@
 # Binaries
 bin/
-ctxd
+lea
+
 
 # OS generated files
 .DS_Store
@@ -17,7 +18,7 @@ Thumbs.db
 *.prof
 
 # Local ctxd data
-.ctxd/
+.lea/
 
 # Go dependencies
 vendor/

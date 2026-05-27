@@ -30,7 +30,7 @@ jobs:
           args: --timeout=5m
 
       - name: Build
-        run: go build -v -o ctxd ./cmd/ctxd/main.go
+        run: go build -v -o lea ./cmd/lea/main.go
 
       - name: Test
         run: go test -v -race -cover ./...
