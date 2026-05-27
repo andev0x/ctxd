@@ -1,11 +1,11 @@
-# `ctxd` Operational Architecture & Workflow
+# `lea` Operational Architecture & Workflow
 
-This document details the internal lifecycle, workflow mechanics, and structural context routing of `ctxd`. It illustrates how the system transitions from raw source code to a real-time deterministic knowledge graph, serving high-signal context to AI Agents and developers.
+This document details the internal lifecycle, workflow mechanics, and structural context routing of `lea`. It illustrates how the system transitions from raw source code to a real-time deterministic knowledge graph, serving high-signal context to AI Agents and developers.
 
 ---
 
 ## 1. Core Reflex Loop (The Underlying Engine)
-`ctxd` operates on a continuous, event-driven reflex loop powered by `fsnotify`. It ensures that the structural graph stored in SQLite remains synchronized with your filesystem in real-time, operating with bounded execution latency. ```text
+`lea` operates on a continuous, event-driven reflex loop powered by `fsnotify`. It ensures that the structural graph stored in SQLite remains synchronized with your filesystem in real-time, operating with bounded execution latency. ```text
 [Filesystem Event: Modify/Create/Delete]
                    │
                    ▼
@@ -34,11 +34,11 @@ This document details the internal lifecycle, workflow mechanics, and structural
 
 ## 2. Automated AI-Agent Workflow (Via MCP Server)
 
-This is the primary automated pipeline. Instead of forcing human intervention, `ctxd` acts as a **Structural Language Server for LLMs**, allowing AI agents (e.g., Claude Code, Aider) to query the codebase deterministically through the Model Context Protocol (MCP).
+This is the primary automated pipeline. Instead of forcing human intervention, `lea` acts as a **Structural Language Server for LLMs**, allowing AI agents (e.g., Claude Code, Aider) to query the codebase deterministically through the Model Context Protocol (MCP).
 
 ```
    ┌──────────┐             ┌──────────┐             ┌──────────┐
-   │ AI Agent │             │   ctxd   │             │  SQLite  │
+   │ AI Agent │             │   lea   │             │  SQLite  │
    └────┬─────┘             └───┬──────┘             ────┬──────
         │                       │                        │
         │ 1. find_symbol(name)  │                        │
@@ -61,9 +61,9 @@ This is the primary automated pipeline. Instead of forcing human intervention, `
 ### Step-by-Step AI Execution Path:
 
 1. **Symbol Discovery (`find_symbol`)**: The user instructs the AI to modify a feature. The AI initiates by requesting the exact coordinates (File, Line, Symbol Type) of the target component.
-2. **Context Expansion (`get_symbol_neighbors`)**: Instead of swallowing whole directories, the AI requests adjacent dependencies. `ctxd` exposes exactly what interfaces the symbol implements and what structures it uses.
-3. **Execution Trace (`trace_execution_path`)**: The AI maps the execution control flow. `ctxd` leverages SQLite Recursive CTEs to output an ordered hierarchy of function call paths.
-4. **Guardrail Check (`find_architecture_violations`)**: Before committing modifications to disk, the AI runs a compliance check against `.ctxd/architecture.yaml` to ensure no architectural boundary constraints are broken.
+2. **Context Expansion (`get_symbol_neighbors`)**: Instead of swallowing whole directories, the AI requests adjacent dependencies. `lea` exposes exactly what interfaces the symbol implements and what structures it uses.
+3. **Execution Trace (`trace_execution_path`)**: The AI maps the execution control flow. `lea` leverages SQLite Recursive CTEs to output an ordered hierarchy of function call paths.
+4. **Guardrail Check (`find_architecture_violations`)**: Before committing modifications to disk, the AI runs a compliance check against `.lea/architecture.yaml` to ensure no architectural boundary constraints are broken.
 
 ---
 
@@ -74,7 +74,7 @@ Designed for developer onboarding, rapid codebase exploration, and manual contex
 ### Scenario A: Codebase Exploration via TUI
 
 ```bash
-ctxd tui
+lea tui
 
 ```
 
@@ -84,18 +84,18 @@ ctxd tui
 ### Scenario B: Manual Context Synthesis for Web LLMs
 
 ```bash
-ctxd context "type:internal/storage/sqlite:Store" > prompt_context.md
+lea context "type:internal/storage/sqlite:Store" > prompt_context.md
 
 ```
 
-* **Entropy Minimization**: `ctxd` extracts the requested target, its immediate dependencies, its interface mapping, and execution constraints into a highly dense, markdown-optimized layout.
+* **Entropy Minimization**: `lea` extracts the requested target, its immediate dependencies, its interface mapping, and execution constraints into a highly dense, markdown-optimized layout.
 * **Token Optimization**: The developer drops `prompt_context.md` into Claude/GPT. The LLM instantly gains system architect-level precision while using **90% fewer tokens** than standard flat-text codebase dumps.
 
 ---
 
 ## 4. Context Compilation Blueprint
 
-When a retrieval request is executed, `ctxd` builds a **High-Signal Markdown Context**. This payload is structured syntactically to match the token-attention mechanisms of modern LLMs:
+When a retrieval request is executed, `lea` builds a **High-Signal Markdown Context**. This payload is structured syntactically to match the token-attention mechanisms of modern LLMs:
 
 ```markdown
 ### Symbol: [Symbol URI]
@@ -121,6 +121,6 @@ When a retrieval request is executed, `ctxd` builds a **High-Signal Markdown Con
 ## 5. System Characteristics
 
 * **Deterministic over Probabilistic**: Zero semantic guessing during indexing. Code relationships are extracted using exact AST nodes, offering 100% mathematical certainty.
-* **Stateful Edge Resolution**: When a single file updates, `ctxd` maintains inbound edges from unmodified files, preserving global graph integrity without requiring a full repository re-index.
+* **Stateful Edge Resolution**: When a single file updates, `lea` maintains inbound edges from unmodified files, preserving global graph integrity without requiring a full repository re-index.
 * **Zero Cloud Footprint**: Runs fully local, processing files out-of-the-box, ensuring total source privacy and zero network overhead.
 

@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in contributing to **ctxd**!
+Thanks for your interest in contributing to **lea**!
 
 ## Getting Started
 

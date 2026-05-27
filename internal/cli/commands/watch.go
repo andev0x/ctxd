@@ -20,12 +20,12 @@ var watchCmd = &cobra.Command{
 			path = args[0]
 		}
 
-		ctxdDir := filepath.Join(path, ".ctxd")
-		if err := os.MkdirAll(ctxdDir, 0755); err != nil {
+		leaDir := filepath.Join(path, ".lea")
+		if err := os.MkdirAll(leaDir, 0755); err != nil {
 			return err
 		}
 
-		dbPath := filepath.Join(ctxdDir, "graph.db")
+		dbPath := filepath.Join(leaDir, "graph.db")
 		store, err := sqlite.NewStore(dbPath)
 		if err != nil {
 			return err

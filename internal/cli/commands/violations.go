@@ -22,7 +22,7 @@ var violationsCmd = &cobra.Command{
 			return err
 		}
 
-		dbPath := filepath.Join(".ctxd", "graph.db")
+		dbPath := filepath.Join(".lea", "graph.db")
 		store, err := sqlite.NewStore(dbPath)
 		if err != nil {
 			return err
@@ -56,6 +56,6 @@ var violationsCmd = &cobra.Command{
 }
 
 func init() {
-	violationsCmd.Flags().StringVar(&violationsConfigPath, "config", filepath.Join(".ctxd", "architecture.yaml"), "Path to architecture config")
+	violationsCmd.Flags().StringVar(&violationsConfigPath, "config", filepath.Join(".lea", "architecture.yaml"), "Path to architecture config")
 	rootCmd.AddCommand(violationsCmd)
 }

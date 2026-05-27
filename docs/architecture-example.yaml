@@ -1,4 +1,4 @@
-# Example architecture constraints for ctxd
+# Example architecture constraints for lea
 layers:
   - name: http
     patterns:

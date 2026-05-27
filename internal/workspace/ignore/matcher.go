@@ -18,7 +18,7 @@ func NewMatcher(root string) *Matcher {
 	return &Matcher{
 		root: root,
 		dirNames: map[string]struct{}{
-			".ctxd":        {},
+			".lea":        {},
 			".git":         {},
 			".idea":        {},
 			".vscode":      {},

@@ -17,7 +17,7 @@ var contextCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		symbolID := args[0]
 
-		dbPath := filepath.Join(".ctxd", "graph.db")
+		dbPath := filepath.Join(".lea", "graph.db")
 		store, err := sqlite.NewStore(dbPath)
 		if err != nil {
 			return err

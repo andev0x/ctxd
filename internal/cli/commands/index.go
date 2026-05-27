@@ -26,15 +26,15 @@ var indexCmd = &cobra.Command{
 			path = args[0]
 		}
 
-		// Ensure .ctxd directory exists
-		ctxdDir := filepath.Join(path, ".ctxd")
-		if _, err := os.Stat(ctxdDir); os.IsNotExist(err) {
-			if err := os.Mkdir(ctxdDir, 0755); err != nil {
-				return fmt.Errorf("failed to create .ctxd directory: %w", err)
+		// Ensure .lea directory exists
+		leaDir := filepath.Join(path, ".lea")
+		if _, err := os.Stat(leaDir); os.IsNotExist(err) {
+			if err := os.Mkdir(leaDir, 0755); err != nil {
+				return fmt.Errorf("failed to create .lea directory: %w", err)
 			}
 		}
 
-		dbPath := filepath.Join(ctxdDir, "graph.db")
+		dbPath := filepath.Join(leaDir, "graph.db")
 		store, err := sqlite.NewStore(dbPath)
 		if err != nil {
 			return err

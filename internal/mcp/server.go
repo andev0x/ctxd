@@ -27,7 +27,7 @@ func NewServer(store contracts.Store) *Server {
 }
 
 func (s *Server) Start() error {
-	mcpServer := mcp_golang.NewServer(stdio.NewStdioServerTransport(), mcp_golang.WithName("ctxd"))
+	mcpServer := mcp_golang.NewServer(stdio.NewStdioServerTransport(), mcp_golang.WithName("lea"))
 
 	// Tool: get_symbol_context
 	err := mcpServer.RegisterTool("get_symbol_context", "Generates AI-optimized markdown context for a given symbol ID", func(ctx context.Context, args struct {
@@ -105,7 +105,7 @@ func (s *Server) Start() error {
 	}) (*mcp_golang.ToolResponse, error) {
 		configPath := args.ConfigPath
 		if configPath == "" {
-			configPath = filepath.Join(".ctxd", "architecture.yaml")
+			configPath = filepath.Join(".lea", "architecture.yaml")
 		}
 		cfg, err := architecture.LoadConfig(configPath)
 		if err != nil {

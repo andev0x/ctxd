@@ -1,7 +1,7 @@
-# Project: 'ctxd'
+# Project: 'lea'
 Structural context operating system for AI-native software engineering.
-ctxd is a terminal-first structural memory system that helps AI models and developers understand large codebases with minimal context and maximum precision.
-Instead of treating code as flat text, ctxd models repositories as living structural graphs.
+lea is a terminal-first structural memory system that helps AI models and developers understand large codebases with minimal context and maximum precision.
+Instead of treating code as flat text, lea models repositories as living structural graphs.
 The goal is not to build another AI coding assistant. The goal is to build the missing context infrastructure layer between codebases and AI systems.
 
 Vision
@@ -25,19 +25,19 @@ Software systems are:
 * symbolic
 * graph-oriented
 * architecture-driven
-ctxd focuses on:
+lea focuses on:
 Structural retrieval first.
 Semantic retrieval second.
 
 Core Philosophy
-What ctxd IS
+What lea IS
 * Structural memory system
 * Graph-based context engine
 * AI context compiler
 * Terminal-native developer infrastructure
 * Persistent codebase cognition layer
 
-What ctxd is NOT
+What lea is NOT
 * IDE replacement
 * Chatbot wrapper
 * Another autonomous AI agent
@@ -62,7 +62,7 @@ LoginHandler
       -> UserRepository.FindByEmail
       -> TokenService.Generate
           -> RedisStore.SaveSession
-ctxd exists to preserve and expose these relationships.
+lea exists to preserve and expose these relationships.
 
 Key Design Principles
 1. Structural Retrieval First
@@ -99,7 +99,7 @@ Only:
 * rebuild local subgraphs
 
 5. AI-Agnostic Infrastructure
-ctxd should support:
+lea should support:
 * Claude
 * GPT
 * Gemini
@@ -263,10 +263,10 @@ The goal is not visualization. The goal is fast structural understanding.
 
 Core Retrieval Types
 Neighbor Query
-ctxd neighbors AuthService
+lea neighbors AuthService
 
 Trace Query
-ctxd trace LoginHandler
+lea trace LoginHandler
 Output:
 HTTP Request
   -> LoginHandler
@@ -275,13 +275,13 @@ HTTP Request
           -> TokenService.Generate
 
 Impact Query
-ctxd impact TokenService
+lea impact TokenService
 
 Architecture Violations
-ctxd violations
+lea violations
 
 AI Context Export
-ctxd context AuthService
+lea context AuthService
 
 6. AI Context Compiler
 Purpose
@@ -333,16 +333,16 @@ not giant visual graphs.
 
 Example Commands
 Search
-ctxd find AuthService
+lea find AuthService
 
 Explain
-ctxd explain AuthService
+lea explain AuthService
 
 Trace
-ctxd trace LoginFlow
+lea trace LoginFlow
 
 AI Context
-ctxd context auth
+lea context auth
 
 TUI Philosophy
 Visualization is secondary.
@@ -381,10 +381,10 @@ Features
 * CLI retrieval
 
 Commands
-ctxd index
-ctxd neighbors
-ctxd trace
-ctxd impact
+lea index
+lea neighbors
+lea trace
+lea impact
 
 Phase 1.5 — Stable Incremental Updates
 Add
@@ -421,7 +421,7 @@ Add
 * Lua support
 
 Long-Term Direction
-ctxd is not trying to become:
+lea is not trying to become:
 * a giant autonomous AI agent
 * an IDE replacement
 * a full software architect
@@ -445,4 +445,4 @@ smaller context
 + stronger retrieval
 + better structure
 + deterministic tooling
-ctxd exists to help make that future practical.
+lea exists to help make that future practical.
