@@ -1,3 +1,4 @@
+// Package mcp exposes the Model Context Protocol server.
 package mcp
 
 import (
@@ -14,11 +15,13 @@ import (
 	"github.com/metoro-io/mcp-golang/transport/stdio"
 )
 
+// Server exposes MCP tools backed by the graph store.
 type Server struct {
 	store    contracts.Store
 	compiler *aictx.Compiler
 }
 
+// NewServer constructs a Server with the provided store.
 func NewServer(store contracts.Store) *Server {
 	return &Server{
 		store:    store,
@@ -26,6 +29,7 @@ func NewServer(store contracts.Store) *Server {
 	}
 }
 
+// Start registers MCP tools and serves over stdio.
 func (s *Server) Start() error {
 	mcpServer := mcp_golang.NewServer(stdio.NewStdioServerTransport(), mcp_golang.WithName("lea"))
 

@@ -1,3 +1,4 @@
+// Package ignore provides workspace ignore rules for indexing.
 package ignore
 
 import (
@@ -14,6 +15,7 @@ type Matcher struct {
 	extensions map[string]struct{}
 }
 
+// NewMatcher creates a new matcher with default ignore rules.
 func NewMatcher(root string) *Matcher {
 	return &Matcher{
 		root: root,
@@ -40,6 +42,7 @@ func NewMatcher(root string) *Matcher {
 	}
 }
 
+// ShouldSkipDir returns true if the directory should be ignored.
 func (m *Matcher) ShouldSkipDir(path string, entry fs.DirEntry) bool {
 	if path == m.root {
 		return false
@@ -52,7 +55,8 @@ func (m *Matcher) ShouldSkipDir(path string, entry fs.DirEntry) bool {
 	return ok
 }
 
-func (m *Matcher) ShouldSkipFile(path string, entry fs.DirEntry) bool {
+// ShouldSkipFile returns true if the file should be ignored.
+func (m *Matcher) ShouldSkipFile(_ string, entry fs.DirEntry) bool {
 	name := entry.Name()
 	if strings.HasPrefix(name, ".") {
 		return true

@@ -1,3 +1,4 @@
+// Package tui provides the interactive terminal UI.
 package tui
 
 import (
@@ -30,21 +31,6 @@ type model struct {
 	list  list.Model
 }
 
-func NewModel(store contracts.Store, nodes []*graph.Node) model {
-	var items []list.Item
-	for _, n := range nodes {
-		items = append(items, item{node: n})
-	}
-
-	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
-	l.Title = "Symbols"
-
-	return model{
-		store: store,
-		list:  l,
-	}
-}
-
 func (m model) Init() tea.Cmd {
 	return nil
 }
@@ -69,6 +55,23 @@ func (m model) View() string {
 	return docStyle.Render(m.list.View())
 }
 
+// NewModel creates a new TUI model.
+func NewModel(store contracts.Store, nodes []*graph.Node) tea.Model {
+	var items []list.Item
+	for _, n := range nodes {
+		items = append(items, item{node: n})
+	}
+
+	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
+	l.Title = "Symbols"
+
+	return model{
+		store: store,
+		list:  l,
+	}
+}
+
+// Start initializes and runs the TUI application.
 func Start(store contracts.Store) error {
 	ctx := context.Background()
 	nodes, err := store.ListNodes(ctx)

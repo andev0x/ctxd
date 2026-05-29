@@ -13,7 +13,7 @@ var neighborsCmd = &cobra.Command{
 	Use:   "neighbors [symbol_id]",
 	Short: "Find neighbors of a symbol",
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, args []string) error {
 		symbolID := args[0]
 
 		dbPath := filepath.Join(".lea", "graph.db")

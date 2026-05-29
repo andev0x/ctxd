@@ -14,7 +14,7 @@ var watchCmd = &cobra.Command{
 	Use:   "watch [path]",
 	Short: "Watch a repository for changes and update the index incrementally",
 	Args:  cobra.MaximumNArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, args []string) error {
 		path := "."
 		if len(args) > 0 {
 			path = args[0]

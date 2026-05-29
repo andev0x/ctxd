@@ -1,3 +1,4 @@
+// Package context provides functionality for compiling AI context from the graph.
 package context
 
 import (
@@ -9,14 +10,17 @@ import (
 	"github.com/PizenLabs/lea/internal/storage/contracts"
 )
 
+// Compiler handles the compilation of nodes into a textual context for AI consumption.
 type Compiler struct {
 	store contracts.Store
 }
 
+// NewCompiler creates a new context compiler.
 func NewCompiler(store contracts.Store) *Compiler {
 	return &Compiler{store: store}
 }
 
+// Compile generates a markdown representation of a symbol and its relationships.
 func (c *Compiler) Compile(ctx context.Context, symbolID string) (string, error) {
 	node, err := c.store.GetNode(ctx, symbolID)
 	if err != nil {

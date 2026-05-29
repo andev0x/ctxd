@@ -1,3 +1,4 @@
+// Package watcher provides filesystem monitoring for incremental indexing.
 package watcher
 
 import (
@@ -16,12 +17,14 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
+// Watcher monitors the file system for changes and updates the graph index.
 type Watcher struct {
 	store  storage.Store
 	parser contracts.Parser
 	root   string
 }
 
+// NewWatcher creates a new file system watcher.
 func NewWatcher(store storage.Store, root string) *Watcher {
 	return &Watcher{
 		store:  store,
@@ -30,6 +33,7 @@ func NewWatcher(store storage.Store, root string) *Watcher {
 	}
 }
 
+// Start begins watching the file system for changes.
 func (w *Watcher) Start(ctx context.Context) error {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {

@@ -10,6 +10,7 @@ var rootCmd = &cobra.Command{
 	Long:  `lea helps AI models and developers understand large codebases by modeling repositories as living structural graphs.`,
 }
 
+// Execute adds all child commands to the root command and sets flags appropriately.
 func Execute() error {
 	return rootCmd.Execute()
 }

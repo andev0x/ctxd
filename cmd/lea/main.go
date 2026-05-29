@@ -1,3 +1,4 @@
+// Package main provides the lea CLI entrypoint.
 package main
 
 import (

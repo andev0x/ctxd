@@ -1,3 +1,4 @@
+// Package contracts defines the interfaces for graph storage.
 package contracts
 
 import (
@@ -5,6 +6,7 @@ import (
 	graph "github.com/PizenLabs/lea/internal/graph/contracts"
 )
 
+// Store defines the interface for persisting and querying the structural graph.
 type Store interface {
 	SaveNode(ctx context.Context, node *graph.Node) error
 	SaveEdge(ctx context.Context, edge *graph.Edge) error

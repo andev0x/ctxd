@@ -5,14 +5,17 @@ import (
 	"strings"
 )
 
+// Matcher handles mapping files to architecture layers.
 type Matcher struct {
 	layers []Layer
 }
 
+// NewMatcher creates a new architecture layer matcher.
 func NewMatcher(cfg *Config) *Matcher {
 	return &Matcher{layers: cfg.Layers}
 }
 
+// LayerForFile determines which layer a file belongs to based on patterns.
 func (m *Matcher) LayerForFile(path string) (string, bool) {
 	if path == "" {
 		return "", false

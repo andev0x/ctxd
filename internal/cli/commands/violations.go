@@ -16,7 +16,7 @@ var violationsConfigPath string
 var violationsCmd = &cobra.Command{
 	Use:   "violations",
 	Short: "Detect architecture boundary violations",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		cfg, err := architecture.LoadConfig(violationsConfigPath)
 		if err != nil {
 			return err
