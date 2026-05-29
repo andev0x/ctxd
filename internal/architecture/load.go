@@ -7,6 +7,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// LoadConfig reads the architecture configuration from a YAML file.
 func LoadConfig(path string) (*Config, error) {
 	if path == "" {
 		return nil, fmt.Errorf("architecture config path is required")

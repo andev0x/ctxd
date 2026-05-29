@@ -7,6 +7,8 @@ import (
 	"github.com/PizenLabs/lea/internal/storage/contracts"
 )
 
+// Violation represents an architectural rule violation where a dependency exists
+// between layers that is not explicitly allowed.
 type Violation struct {
 	FromID    string
 	ToID      string
@@ -19,6 +21,7 @@ type Violation struct {
 	ToLine    int
 }
 
+// FindViolations scans the store for edges that violate architecture rules.
 func FindViolations(ctx context.Context, store contracts.Store, cfg *Config) ([]Violation, error) {
 	nodes, err := store.ListNodes(ctx)
 	if err != nil {
@@ -88,6 +91,7 @@ func isDependencyEdge(edgeType graph.EdgeType) bool {
 	}
 }
 
+// AllowUnknown returns true if dependencies to or from unknown layers are allowed.
 func (c *Config) AllowUnknown() bool {
 	if c.Settings.AllowUnknown == nil {
 		return true
@@ -95,6 +99,7 @@ func (c *Config) AllowUnknown() bool {
 	return *c.Settings.AllowUnknown
 }
 
+// Allowed returns true if a dependency from fromLayer to toLayer is permitted.
 func (c *Config) Allowed(fromLayer, toLayer string) bool {
 	if fromLayer == "" || toLayer == "" {
 		return c.AllowUnknown()
@@ -117,6 +122,7 @@ func (c *Config) Allowed(fromLayer, toLayer string) bool {
 	return false
 }
 
+// AllowSelf returns true if dependencies within the same layer are allowed.
 func (c *Config) AllowSelf() bool {
 	if c.Settings.AllowSelf == nil {
 		return true
@@ -124,6 +130,7 @@ func (c *Config) AllowSelf() bool {
 	return *c.Settings.AllowSelf
 }
 
+// DefaultAllowAll returns the default behavior when a layer has no explicit allow rules.
 func (c *Config) DefaultAllowAll() bool {
 	if c.Settings.DefaultAllowAll == nil {
 		return true

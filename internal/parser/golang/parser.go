@@ -1,3 +1,4 @@
+// Package golang provides a Go source parser for graph extraction.
 package golang
 
 import (
@@ -14,17 +15,20 @@ import (
 	graph "github.com/PizenLabs/lea/internal/graph/contracts"
 )
 
+// Parser parses Go source files into graph nodes and edges.
 type Parser struct {
 	fset *token.FileSet
 }
 
+// NewParser creates a new Go source parser.
 func NewParser() *Parser {
 	return &Parser{
 		fset: token.NewFileSet(),
 	}
 }
 
-func (p *Parser) ParseFile(ctx context.Context, path string) ([]*graph.Node, []*graph.Edge, error) {
+// ParseFile extracts symbol nodes and edges from a Go source file.
+func (p *Parser) ParseFile(_ context.Context, path string) ([]*graph.Node, []*graph.Edge, error) {
 	f, err := parser.ParseFile(p.fset, path, nil, parser.ParseComments)
 	if err != nil {
 		return nil, nil, err
@@ -132,7 +136,8 @@ func (p *Parser) getReceiverType(recv *ast.FieldList) string {
 	return ""
 }
 
-func (p *Parser) ExtractCalls(ctx context.Context, path string) ([]*graph.Edge, error) {
+// ExtractCalls extracts call graph edges from a Go source file.
+func (p *Parser) ExtractCalls(_ context.Context, path string) ([]*graph.Edge, error) {
 	f, err := parser.ParseFile(p.fset, path, nil, 0)
 	if err != nil {
 		return nil, err
@@ -182,7 +187,8 @@ func (p *Parser) ExtractCalls(ctx context.Context, path string) ([]*graph.Edge, 
 	return edges, nil
 }
 
-func (p *Parser) ExtractControlFlow(ctx context.Context, path string) ([]*graph.Edge, error) {
+// ExtractControlFlow extracts control-flow ordered call edges from a Go source file.
+func (p *Parser) ExtractControlFlow(_ context.Context, path string) ([]*graph.Edge, error) {
 	f, err := parser.ParseFile(p.fset, path, nil, 0)
 	if err != nil {
 		return nil, err

@@ -1,3 +1,4 @@
+// Package treesitter parses non-Go sources using tree-sitter.
 package treesitter
 
 import (
@@ -15,11 +16,13 @@ import (
 	"github.com/tree-sitter/tree-sitter-typescript/bindings/go"
 )
 
+// Parser parses non-Go sources using tree-sitter queries.
 type Parser struct {
 	languages map[string]*sitter.Language
 	queries   map[string]string
 }
 
+// NewParser constructs a tree-sitter parser.
 func NewParser() *Parser {
 	return &Parser{
 		languages: map[string]*sitter.Language{
@@ -33,7 +36,8 @@ func NewParser() *Parser {
 	}
 }
 
-func (p *Parser) ParseFile(ctx context.Context, path string) ([]*graph.Node, []*graph.Edge, error) {
+// ParseFile extracts symbol nodes and edges from a source file.
+func (p *Parser) ParseFile(_ context.Context, path string) ([]*graph.Node, []*graph.Edge, error) {
 	ext := filepath.Ext(path)
 	lang, ok := p.languages[ext]
 	if !ok {
@@ -135,10 +139,12 @@ func (p *Parser) ParseFile(ctx context.Context, path string) ([]*graph.Node, []*
 	return nodes, edges, nil
 }
 
-func (p *Parser) ExtractCalls(ctx context.Context, path string) ([]*graph.Edge, error) {
+// ExtractCalls returns call edges for the given file when supported.
+func (p *Parser) ExtractCalls(_ context.Context, _ string) ([]*graph.Edge, error) {
 	return nil, nil
 }
 
-func (p *Parser) ExtractControlFlow(ctx context.Context, path string) ([]*graph.Edge, error) {
+// ExtractControlFlow returns control-flow edges for the given file when supported.
+func (p *Parser) ExtractControlFlow(_ context.Context, _ string) ([]*graph.Edge, error) {
 	return nil, nil
 }

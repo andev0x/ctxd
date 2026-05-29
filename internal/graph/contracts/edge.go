@@ -1,17 +1,27 @@
+// Package contracts defines the core data structures for the structural graph.
 package contracts
 
+// EdgeType represents the nature of a relationship between two nodes.
 type EdgeType string
 
 const (
-	EdgeCalls        EdgeType = "CALLS"
-	EdgeImplements   EdgeType = "IMPLEMENTS"
-	EdgeUses         EdgeType = "USES"
-	EdgeImports      EdgeType = "IMPORTS"
-	EdgeBelongsTo    EdgeType = "BELONGS_TO"
-	EdgeDependsOn    EdgeType = "DEPENDS_ON"
+	// EdgeCalls indicates that one symbol calls another.
+	EdgeCalls EdgeType = "CALLS"
+	// EdgeImplements indicates that a type implements an interface.
+	EdgeImplements EdgeType = "IMPLEMENTS"
+	// EdgeUses indicates that one symbol uses or references another.
+	EdgeUses EdgeType = "USES"
+	// EdgeImports indicates that one file or package imports another.
+	EdgeImports EdgeType = "IMPORTS"
+	// EdgeBelongsTo indicates a containment relationship (e.g., method belongs to class).
+	EdgeBelongsTo EdgeType = "BELONGS_TO"
+	// EdgeDependsOn indicates a general dependency.
+	EdgeDependsOn EdgeType = "DEPENDS_ON"
+	// EdgeFlowsThrough indicates data flow between symbols.
 	EdgeFlowsThrough EdgeType = "FLOWS_THROUGH"
 )
 
+// Edge represents a directed relationship between two nodes in the graph.
 type Edge struct {
 	FromID   string                 `json:"from_id"`
 	ToID     string                 `json:"to_id"`

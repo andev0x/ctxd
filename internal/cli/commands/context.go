@@ -1,3 +1,4 @@
+// Package commands defines CLI subcommands for lea.
 package commands
 
 import (
@@ -14,7 +15,7 @@ var contextCmd = &cobra.Command{
 	Use:   "context [symbol_id]",
 	Short: "Generate AI-optimized context for a symbol",
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, args []string) error {
 		symbolID := args[0]
 
 		dbPath := filepath.Join(".lea", "graph.db")

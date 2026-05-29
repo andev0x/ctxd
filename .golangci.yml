@@ -9,7 +9,6 @@ linters:
     - contextcheck
     - errcheck
     - errorlint
-    - gosimple
     - govet
     - ineffassign
     - nilerr
@@ -17,6 +16,3 @@ linters:
     - revive
     - staticcheck
     - unused
-
-issues:
-  exclude-use-default: false

@@ -11,7 +11,7 @@ import (
 var tuiCmd = &cobra.Command{
 	Use:   "tui",
 	Short: "Start the interactive TUI",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		dbPath := filepath.Join(".lea", "graph.db")
 		store, err := sqlite.NewStore(dbPath)
 		if err != nil {

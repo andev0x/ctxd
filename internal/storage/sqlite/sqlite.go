@@ -1,3 +1,4 @@
+// Package sqlite provides a SQLite implementation of the Store interface.
 package sqlite
 
 import (
@@ -7,13 +8,15 @@ import (
 	"fmt"
 
 	graph "github.com/PizenLabs/lea/internal/graph/contracts"
-	_ "modernc.org/sqlite"
+	_ "modernc.org/sqlite" // SQLite driver
 )
 
+// Store implements the contracts.Store interface using SQLite.
 type Store struct {
 	db *sql.DB
 }
 
+// NewStore creates a new SQLite store with the given DSN.
 func NewStore(dsn string) (*Store, error) {
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
@@ -26,19 +29,20 @@ func NewStore(dsn string) (*Store, error) {
 	// 	return nil, err
 	// }
 
-	if err := db.Ping(); err != nil {
+	ctx := context.Background()
+	if err := db.PingContext(ctx); err != nil {
 		return nil, err
 	}
 
 	s := &Store{db: db}
-	if err := s.migrate(); err != nil {
+	if err := s.migrate(ctx); err != nil {
 		return nil, err
 	}
 
 	return s, nil
 }
 
-func (s *Store) migrate() error {
+func (s *Store) migrate(ctx context.Context) error {
 	nodesQuery := `CREATE TABLE IF NOT EXISTS nodes (
 		id TEXT PRIMARY KEY,
 		type TEXT NOT NULL,
@@ -47,11 +51,11 @@ func (s *Store) migrate() error {
 		line INTEGER NOT NULL,
 		metadata TEXT
 	)`
-	if _, err := s.db.Exec(nodesQuery); err != nil {
+	if _, err := s.db.ExecContext(ctx, nodesQuery); err != nil {
 		return fmt.Errorf("failed to execute migration %q: %w", nodesQuery, err)
 	}
 
-	if err := s.ensureEdgesTable(); err != nil {
+	if err := s.ensureEdgesTable(ctx); err != nil {
 		return err
 	}
 
@@ -62,23 +66,23 @@ func (s *Store) migrate() error {
 		`CREATE INDEX IF NOT EXISTS idx_edges_sequence ON edges(sequence)`,
 	}
 	for _, q := range indexes {
-		if _, err := s.db.Exec(q); err != nil {
+		if _, err := s.db.ExecContext(ctx, q); err != nil {
 			return fmt.Errorf("failed to execute migration %q: %w", q, err)
 		}
 	}
 	return nil
 }
 
-func (s *Store) ensureEdgesTable() error {
-	exists, err := s.edgesTableExists()
+func (s *Store) ensureEdgesTable(ctx context.Context) error {
+	exists, err := s.edgesTableExists(ctx)
 	if err != nil {
 		return err
 	}
 	if !exists {
-		return s.createEdgesTable()
+		return s.createEdgesTable(ctx)
 	}
 
-	hasSequence, err := s.edgesHasSequence()
+	hasSequence, err := s.edgesHasSequence(ctx)
 	if err != nil {
 		return err
 	}
@@ -86,32 +90,32 @@ func (s *Store) ensureEdgesTable() error {
 		return nil
 	}
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
-	if _, err := tx.Exec(`ALTER TABLE edges RENAME TO edges_old`); err != nil {
+	if _, err := tx.ExecContext(ctx, `ALTER TABLE edges RENAME TO edges_old`); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
-	if _, err := tx.Exec(s.edgesTableDDL()); err != nil {
+	if _, err := tx.ExecContext(ctx, s.edgesTableDDL()); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
-	if _, err := tx.Exec(`INSERT INTO edges (from_id, to_id, type, sequence, metadata)
+	if _, err := tx.ExecContext(ctx, `INSERT INTO edges (from_id, to_id, type, sequence, metadata)
 		SELECT from_id, to_id, type, 0, metadata FROM edges_old`); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
-	if _, err := tx.Exec(`DROP TABLE edges_old`); err != nil {
+	if _, err := tx.ExecContext(ctx, `DROP TABLE edges_old`); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
 	return tx.Commit()
 }
 
-func (s *Store) createEdgesTable() error {
-	_, err := s.db.Exec(s.edgesTableDDL())
+func (s *Store) createEdgesTable(ctx context.Context) error {
+	_, err := s.db.ExecContext(ctx, s.edgesTableDDL())
 	if err != nil {
 		return fmt.Errorf("failed to execute migration %q: %w", s.edgesTableDDL(), err)
 	}
@@ -132,8 +136,8 @@ func (s *Store) edgesTableDDL() string {
 	)`
 }
 
-func (s *Store) edgesTableExists() (bool, error) {
-	row := s.db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='edges'`)
+func (s *Store) edgesTableExists(ctx context.Context) (bool, error) {
+	row := s.db.QueryRowContext(ctx, `SELECT name FROM sqlite_master WHERE type='table' AND name='edges'`)
 	var name string
 	switch err := row.Scan(&name); err {
 	case nil:
@@ -145,8 +149,8 @@ func (s *Store) edgesTableExists() (bool, error) {
 	}
 }
 
-func (s *Store) edgesHasSequence() (bool, error) {
-	rows, err := s.db.Query(`PRAGMA table_info(edges)`)
+func (s *Store) edgesHasSequence(ctx context.Context) (bool, error) {
+	rows, err := s.db.QueryContext(ctx, `PRAGMA table_info(edges)`)
 	if err != nil {
 		return false, err
 	}
@@ -169,6 +173,7 @@ func (s *Store) edgesHasSequence() (bool, error) {
 	return false, rows.Err()
 }
 
+// SaveNode saves a node to the store.
 func (s *Store) SaveNode(ctx context.Context, node *graph.Node) error {
 	metadata, err := marshalMetadata(node.Metadata)
 	if err != nil {
@@ -180,6 +185,7 @@ func (s *Store) SaveNode(ctx context.Context, node *graph.Node) error {
 	return err
 }
 
+// SaveEdge saves an edge to the store.
 func (s *Store) SaveEdge(ctx context.Context, edge *graph.Edge) error {
 	metadata, err := marshalMetadata(edge.Metadata)
 	if err != nil {
@@ -191,6 +197,7 @@ func (s *Store) SaveEdge(ctx context.Context, edge *graph.Edge) error {
 	return err
 }
 
+// SaveGraph saves a set of nodes and edges in a single transaction.
 func (s *Store) SaveGraph(ctx context.Context, nodes []*graph.Node, edges []*graph.Edge) error {
 	if len(nodes) == 0 && len(edges) == 0 {
 		return nil
@@ -249,6 +256,7 @@ func (s *Store) saveNodesEdgesTx(ctx context.Context, tx *sql.Tx, nodes []*graph
 	return nil
 }
 
+// GetNode retrieves a node by its ID.
 func (s *Store) GetNode(ctx context.Context, id string) (*graph.Node, error) {
 	query := `SELECT id, type, name, file, line, metadata FROM nodes WHERE id = ?`
 	row := s.db.QueryRowContext(ctx, query, id)
@@ -272,6 +280,7 @@ func (s *Store) GetNode(ctx context.Context, id string) (*graph.Node, error) {
 	return &node, nil
 }
 
+// ListNodes returns all nodes in the store.
 func (s *Store) ListNodes(ctx context.Context) ([]*graph.Node, error) {
 	query := `SELECT id, type, name, file, line, metadata FROM nodes`
 	rows, err := s.db.QueryContext(ctx, query)
@@ -298,6 +307,7 @@ func (s *Store) ListNodes(ctx context.Context) ([]*graph.Node, error) {
 	return nodes, nil
 }
 
+// ListEdges returns all edges in the store.
 func (s *Store) ListEdges(ctx context.Context) ([]*graph.Edge, error) {
 	query := `SELECT from_id, to_id, type, sequence, metadata FROM edges`
 	rows, err := s.db.QueryContext(ctx, query)
@@ -323,6 +333,7 @@ func (s *Store) ListEdges(ctx context.Context) ([]*graph.Edge, error) {
 	return edges, nil
 }
 
+// GetNeighbors retrieves all outbound edges and target nodes for a given node ID.
 func (s *Store) GetNeighbors(ctx context.Context, id string) ([]*graph.Node, []*graph.Edge, error) {
 	// Outbound edges and their target nodes
 	query := `
@@ -387,6 +398,7 @@ func (s *Store) GetNeighbors(ctx context.Context, id string) ([]*graph.Node, []*
 	return nodes, edges, nil
 }
 
+// GetInboundEdges retrieves all inbound edges and their source nodes for a given node ID.
 func (s *Store) GetInboundEdges(ctx context.Context, id string) ([]*graph.Node, []*graph.Edge, error) {
 	query := `
 		SELECT e.from_id, e.to_id, e.type, e.sequence, e.metadata, n.id, n.type, n.name, n.file, n.line, n.metadata
@@ -435,21 +447,25 @@ func (s *Store) GetInboundEdges(ctx context.Context, id string) ([]*graph.Node, 
 	return nodes, edges, nil
 }
 
+// DeleteNode deletes a node by its ID.
 func (s *Store) DeleteNode(ctx context.Context, id string) error {
 	_, err := s.db.ExecContext(ctx, `DELETE FROM nodes WHERE id = ?`, id)
 	return err
 }
 
+// DeleteByFile deletes all nodes associated with a file.
 func (s *Store) DeleteByFile(ctx context.Context, file string) error {
 	_, err := s.db.ExecContext(ctx, `DELETE FROM nodes WHERE file = ?`, file)
 	return err
 }
 
+// DeleteEdgesFrom deletes all outbound edges from a node.
 func (s *Store) DeleteEdgesFrom(ctx context.Context, id string) error {
 	_, err := s.db.ExecContext(ctx, `DELETE FROM edges WHERE from_id = ?`, id)
 	return err
 }
 
+// Close closes the database connection.
 func (s *Store) Close() error {
 	return s.db.Close()
 }
