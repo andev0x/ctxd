@@ -4,6 +4,25 @@ This guide explains how to install, run, and explore `lea`, and includes diagram
 
 ## Installation
 
+### Go Install
+
+```bash
+go install github.com/PizenLabs/lea/cmd/lea@latest
+```
+
+### Install Script (curl)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/PizenLabs/lea/main/scripts/install.sh | bash
+```
+
+### Homebrew (Tap)
+
+```bash
+brew tap PizenLabs/tap
+brew install lea
+```
+
 ### From Source
 
 ```bash
@@ -16,6 +35,12 @@ make build
 
 # Install to your GOPATH/bin
 make install
+```
+
+### Check Your Version
+
+```bash
+lea version
 ```
 
 ## Quick Start
