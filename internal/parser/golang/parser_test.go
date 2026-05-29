@@ -25,11 +25,11 @@ func TestParseFile(t *testing.T) {
 	// Adjust pkgPath expectation based on how it's calculated in ParseFile
 	pkgPath := filepath.Dir(absPath)
 	expectedNodes := map[string]graph.NodeType{
-		"pkg:" + pkgPath:                         graph.NodePackage,
-		"type:" + pkgPath + ":Calculator":        graph.NodeStruct,
-		"method:" + pkgPath + ":Calculator.Add":  graph.NodeMethod,
-		"func:" + pkgPath + ":Add":               graph.NodeFunction,
-		"func:" + pkgPath + ":Main":              graph.NodeFunction,
+		"pkg:" + pkgPath:                        graph.NodePackage,
+		"type:" + pkgPath + ":Calculator":       graph.NodeStruct,
+		"method:" + pkgPath + ":Calculator.Add": graph.NodeMethod,
+		"func:" + pkgPath + ":Add":              graph.NodeFunction,
+		"func:" + pkgPath + ":Main":             graph.NodeFunction,
 	}
 
 	if len(nodes) != len(expectedNodes) {
@@ -133,7 +133,7 @@ func TestExtractControlFlow(t *testing.T) {
 			if e.ToID == "unknown:calc.Add" {
 				foundAdd = true
 			}
-			if e.ToID == "func:" + pkgPath + ":Add" {
+			if e.ToID == "func:"+pkgPath+":Add" {
 				foundInternalAdd = true
 			}
 		}

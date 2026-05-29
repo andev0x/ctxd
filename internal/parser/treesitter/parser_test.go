@@ -25,7 +25,7 @@ func TestParseFile_Python(t *testing.T) {
 	relPath, _ := filepath.Rel(".", absPath)
 
 	expectedNodes := map[string]graph.NodeType{
-		"file:" + relPath:          graph.NodeModule,
+		"file:" + relPath:              graph.NodeModule,
 		"type:" + relPath + ":Greeter": graph.NodeStruct,
 		"func:" + relPath + ":main":    graph.NodeFunction,
 	}

@@ -154,7 +154,7 @@ func (s *Store) edgesHasSequence(ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer func() { _ = rows.Close() }() 
+	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
 		var cid int
@@ -287,7 +287,7 @@ func (s *Store) ListNodes(ctx context.Context) ([]*graph.Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = rows.Close() }() 
+	defer func() { _ = rows.Close() }()
 
 	var nodes []*graph.Node
 	for rows.Next() {
@@ -314,7 +314,7 @@ func (s *Store) ListEdges(ctx context.Context) ([]*graph.Edge, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = rows.Close() }() 
+	defer func() { _ = rows.Close() }()
 
 	var edges []*graph.Edge
 	for rows.Next() {
@@ -346,7 +346,7 @@ func (s *Store) GetNeighbors(ctx context.Context, id string) ([]*graph.Node, []*
 	if err != nil {
 		return nil, nil, err
 	}
-	defer func() { _ = rows.Close() }() 
+	defer func() { _ = rows.Close() }()
 
 	var nodes []*graph.Node
 	var edges []*graph.Edge
@@ -410,7 +410,7 @@ func (s *Store) GetInboundEdges(ctx context.Context, id string) ([]*graph.Node, 
 	if err != nil {
 		return nil, nil, err
 	}
-	defer func() { _ = rows.Close() }() 
+	defer func() { _ = rows.Close() }()
 
 	var nodes []*graph.Node
 	var edges []*graph.Edge
