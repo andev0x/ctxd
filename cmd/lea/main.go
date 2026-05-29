@@ -8,6 +8,7 @@ import (
 	"github.com/PizenLabs/lea/internal/cli/commands"
 )
 
+// Version is the current build version.
 var Version = "dev"
 
 func main() {
