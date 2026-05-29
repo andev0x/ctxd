@@ -39,7 +39,7 @@ var indexCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer func() { _ = store.Close() }() 
+		defer func() { _ = store.Close() }()
 
 		goParser := golang.NewParser()
 		tsParser := treesitter.NewParser()

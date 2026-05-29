@@ -21,7 +21,7 @@ var neighborsCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer func() { _ = store.Close() }() 
+		defer func() { _ = store.Close() }()
 
 		ctx := context.Background()
 		nodes, edges, err := store.GetNeighbors(ctx, symbolID)
