@@ -105,7 +105,7 @@ sequenceDiagram
     autonumber
     actor Agent as AI Agent
     participant Lea as lea (MCP Server)
-    database DB as SQLite (Graph Engine)
+    participant DB as SQLite (Graph Engine)
 
     Agent->>Lea: find_symbol(name)
     Lea->>DB: Query exact Symbol URI/File
@@ -116,7 +116,7 @@ sequenceDiagram
     Lea->>DB: Traverse Edges (CALLS, USES, etc.)
     DB-->>Lea: Return Subgraph
     Lea-->>Agent: Return Markdown Context
-
+```
 
 ### Incremental Indexing Loop
 
